@@ -6,7 +6,7 @@ from logger import logger
 
 
 def load_csv_file():
-    filename = 'managed_accounts.csv'
+    filename = 'userlist.csv'
     logger.info(f'loading csv file: {filename}')
     value_list = []
     if os.path.isfile(filename):
@@ -20,7 +20,7 @@ def load_csv_file():
 
 
 def set_url(item):
-    url = f'https://api.atlassian.com/users/{item["Atlassian ID"]}/manage/email'
+    url = f'https://api.atlassian.com/users/{item["User id"]}/manage/email'
     # url = f'https://api.atlassian.com/users/{item["Atlassian ID"]}/manage/api-tokens'
     return url
 
@@ -29,21 +29,20 @@ def update_user_email(user_list):
     for user_id in user_list:
         url = set_url(user_id)
         headers = {
-            "Accept": "application/json",
-            "Authorization": "Bearer <bearer token>"
+            "Content-Type": "application/json",
+            "Authorization": "Bearer <api token>"
         }
-        payload = json.dumps({'email': user_id['Email new']})
+        payload = json.dumps({"email": user_id["email - new"]})
         response = requests.request(
-            "GET",
+            "PUT",
             url,
             data=payload,
             headers=headers)
-        if response.status_code == 200:
-            logger.info(f'change email address for user {user_id["Name"]} to {user_id["Email new"]}')
+        if response.status_code == 204:
+            logger.info(f'change email address for user {user_id["email"]} to {user_id["email - new"]}')
         else:
-            logger.info(
-                f'Unable to change email address for user {user_id["Name"]}. Error code: {response.status_code}')
-
+            logger.info(f'Unable to change email address for user {user_id["email"]} to {user_id["email - new"]}. Error code: {response.status_code}')
+            logger.info(f'{response.text}')
 
 def main():
     user_list = load_csv_file()
